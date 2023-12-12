@@ -19,35 +19,12 @@ contract TestSenderWithdrawEther is Test {
 
     function setUp() public {
         console.log("Setting up test");
-        peanutV4 = new PeanutV4();
+        peanutV4 = new PeanutV4(address(0));
     }
 
-    // test sender withdrawal of ERC20
-    function testSenderTimeWithdrawEther(uint64 amount) public {
+    function testSenderWithdrawEther(uint64 amount) public {
         vm.assume(amount > 0);
         uint256 depositIdx = peanutV4.makeDeposit{value: amount}(address(0), 0, amount, 0, PUBKEY20);
-
-        // wait 25 hours
-        vm.warp(block.timestamp + 25 hours);
-
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawEther(uint64 amount) public {
-        vm.assume(amount > 0);
-        uint256 depositIdx = peanutV4.makeDeposit{value: amount}(address(0), 0, amount, 0, PUBKEY20);
-
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawEther1Hour(uint64 amount) public {
-        vm.assume(amount > 0);
-        uint256 depositIdx = peanutV4.makeDeposit{value: amount}(address(0), 0, amount, 0, PUBKEY20);
-
-        // wait 1 hour
-        vm.warp(block.timestamp + 1 hours);
 
         // Withdraw the deposit
         peanutV4.withdrawDepositSender(depositIdx);
@@ -67,7 +44,7 @@ contract TestSenderWithdrawErc20 is Test {
     // apparently not possible to fuzz test in setUp() function?
     function setUp() public {
         console.log("Setting up test");
-        peanutV4 = new PeanutV4();
+        peanutV4 = new PeanutV4(address(0));
         testToken = new ERC20Mock(); // contractype 1
 
         // Mint tokens for test accounts (larger than uint128)
@@ -81,24 +58,7 @@ contract TestSenderWithdrawErc20 is Test {
         _depositIdx = peanutV4.makeDeposit(address(testToken), 1, amount, 0, PUBKEY20);
     }
 
-    // test sender withdrawal of ERC20
-    function testSenderTimeWithdrawErc20() public {
-        // wait 25 hours
-        vm.warp(block.timestamp + 25 hours);
-
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(_depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawErc20Immediate() public {
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(_depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawErc201Hour() public {
-        // wait 1 hour
-        vm.warp(block.timestamp + 1 hours);
-
+    function testSenderWithdrawErc20() public {
         // Withdraw the deposit
         peanutV4.withdrawDepositSender(_depositIdx);
     }
@@ -118,7 +78,7 @@ contract TestSenderWithdrawErc721 is Test, ERC721Holder {
     // apparently not possible to fuzz test in setUp() function?
     function setUp() public {
         console.log("Setting up test");
-        peanutV4 = new PeanutV4();
+        peanutV4 = new PeanutV4(address(0));
         testToken = new ERC721Mock(); // contractype 2
 
         // Mint token for test
@@ -131,24 +91,7 @@ contract TestSenderWithdrawErc721 is Test, ERC721Holder {
         _depositIdx = peanutV4.makeDeposit(address(testToken), 2, 0, _tokenId, PUBKEY20);
     }
 
-    // test sender withdrawal of ERC721
-    function testSenderTimeWithdrawErc721() public {
-        // wait 25 hours
-        vm.warp(block.timestamp + 25 hours);
-
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(_depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawErc721Immediate() public {
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(_depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawErc7211Hour() public {
-        // wait 1 hour
-        vm.warp(block.timestamp + 1 hours);
-
+    function testSenderWithdrawErc721() public {
         // Withdraw the deposit
         peanutV4.withdrawDepositSender(_depositIdx);
     }
@@ -169,7 +112,7 @@ contract TestSenderWithdrawErc1155 is Test, ERC1155Holder {
     // apparently not possible to fuzz test in setUp() function?
     function setUp() public {
         console.log("Setting up test");
-        peanutV4 = new PeanutV4();
+        peanutV4 = new PeanutV4(address(0));
         testToken = new ERC1155Mock(); // contractype 3
 
         // Mint tokens for test
@@ -182,24 +125,7 @@ contract TestSenderWithdrawErc1155 is Test, ERC1155Holder {
         _depositIdx = peanutV4.makeDeposit(address(testToken), 3, _tokenAmount, _tokenId, PUBKEY20);
     }
 
-    // test sender withdrawal of ERC1155
-    function testSenderTimeWithdrawErc1155() public {
-        // wait 25 hours
-        vm.warp(block.timestamp + 25 hours);
-
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(_depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawErc1155Immediate() public {
-        // Withdraw the deposit
-        peanutV4.withdrawDepositSender(_depositIdx);
-    }
-
-    function testFailSenderTimeWithdrawErc11551Hour() public {
-        // wait 1 hour
-        vm.warp(block.timestamp + 1 hours);
-
+    function testSenderWithdrawErc1155() public {
         // Withdraw the deposit
         peanutV4.withdrawDepositSender(_depositIdx);
     }

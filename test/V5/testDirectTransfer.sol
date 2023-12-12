@@ -2,15 +2,15 @@
 pragma solidity ^0.8.19;
 
 import "@forge-std/Test.sol";
-import "../../src/V4/PeanutV4.sol";
+import "../../src/V5/PeanutV5.sol";
 import "../../src/util/ERC20Mock.sol";
 import "../../src/util/ERC721Mock.sol";
 import "../../src/util/ERC1155Mock.sol";
 import "@openzeppelin/contracts/token/ERC1155/utils/ERC1155Holder.sol";
 import "@openzeppelin/contracts/token/ERC721/utils/ERC721Holder.sol";
 
-contract PeanutV4Test is Test, ERC1155Holder, ERC721Holder {
-    PeanutV4 public peanutV4;
+contract PeanutV5Test is Test, ERC1155Holder, ERC721Holder {
+    PeanutV5 public peanutV5;
     ERC20Mock public testToken;
     ERC721Mock public testToken721;
     ERC1155Mock public testToken1155;
@@ -21,7 +21,7 @@ contract PeanutV4Test is Test, ERC1155Holder, ERC721Holder {
 
     function setUp() public {
         console.log("Setting up test");
-        peanutV4 = new PeanutV4(address(0));
+        peanutV5 = new PeanutV5(address(0));
         testToken = new ERC20Mock();
         testToken721 = new ERC721Mock();
         testToken1155 = new ERC1155Mock();
@@ -33,18 +33,18 @@ contract PeanutV4Test is Test, ERC1155Holder, ERC721Holder {
     function testDirectTransferERC721(uint64 tokenId) public {
         testToken721.mint(address(this), tokenId);
         bytes20 pubKey20Bytes = bytes20(PUBKEY20);
-        testToken721.safeTransferFrom(address(this), address(peanutV4), tokenId, abi.encode(pubKey20Bytes));
+        testToken721.safeTransferFrom(address(this), address(peanutV5), tokenId, abi.encode(pubKey20Bytes));
 
-        PeanutV4.Deposit memory deposit = peanutV4.getDeposit(peanutV4.getDepositCount() - 1);
+        PeanutV5.Deposit memory deposit = peanutV5.getDeposit(peanutV5.getDepositCount() - 1);
         assertEq(deposit.pubKey20, PUBKEY20, "Decoded address does not match the test public key");
     }
 
     function testDirectTransferERC1155(uint64 tokenId, uint64 amount) public {
         testToken1155.mint(address(this), tokenId, amount, "");
         bytes20 pubKey20Bytes = bytes20(PUBKEY20);
-        testToken1155.safeTransferFrom(address(this), address(peanutV4), tokenId, amount, abi.encode(pubKey20Bytes));
+        testToken1155.safeTransferFrom(address(this), address(peanutV5), tokenId, amount, abi.encode(pubKey20Bytes));
 
-        PeanutV4.Deposit memory deposit = peanutV4.getDeposit(peanutV4.getDepositCount() - 1);
+        PeanutV5.Deposit memory deposit = peanutV5.getDeposit(peanutV5.getDepositCount() - 1);
         assertEq(deposit.pubKey20, PUBKEY20, "Decoded address does not match the test public key");
     }
 
@@ -89,11 +89,11 @@ contract PeanutV4Test is Test, ERC1155Holder, ERC721Holder {
             amounts[i] = tokens[i].amount;
         }
 
-        testToken1155.safeBatchTransferFrom(address(this), address(peanutV4), tokenIds, amounts, data);
+        testToken1155.safeBatchTransferFrom(address(this), address(peanutV5), tokenIds, amounts, data);
 
         for (uint256 i = 0; i < tokens.length; i++) {
-            console.log(peanutV4.getDepositCount());
-            PeanutV4.Deposit memory deposit = peanutV4.getDeposit(peanutV4.getDepositCount() - 1 - i);
+            console.log(peanutV5.getDepositCount());
+            PeanutV5.Deposit memory deposit = peanutV5.getDeposit(peanutV5.getDepositCount() - 1 - i);
             console.log(deposit.pubKey20);
             console.log(PUBKEY20);
             assertEq(deposit.pubKey20, PUBKEY20, "Decoded address does not match the test public key");

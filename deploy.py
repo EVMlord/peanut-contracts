@@ -13,7 +13,13 @@ dotenv.load_dotenv()
 config = toml.load("foundry.toml")
 
 # Definitions
-CONTRACTS_MAPPING = {"PeanutV3": "v3", "PeanutV4": "v4", "PeanutBatcherV4": "Bv4"}
+CONTRACTS_MAPPING = {
+    "PeanutV3": "v3",
+    "PeanutV4": "v4",
+    "PeanutV4.2": "v4.2",
+    "PeanutBatcherV4": "Bv4",
+    "PeanutV5": "v5",
+}
 CONTRACTS = list(CONTRACTS_MAPPING.keys())
 CONTRACTS_JSON_PATH = "contracts.json"
 
@@ -136,8 +142,14 @@ def deploy_to_chain(chain: str, contracts: List[str]):
             print(
                 f"Warning: Contract {short_contract_name} already exists for {chain} at address {existing_address}."
             )
-            overwrite = input("Do you want to overwrite? (y/n) ")
-            if overwrite.lower() != "y":
+            action = input("The contract is already deployed. Enter Y to redeploy, v to verify, and anything else to cancel: ")
+            if action.lower() == "v":
+                command = f"forge script script/{contract}.s.sol:DeployScript --rpc-url {config['rpc_endpoints'][chain]} --verify -vvvv"
+                print(f"Verifying {contract} on {chain}")
+                output = run_command(command)
+                print(output)
+                continue
+            elif action.lower() != "y":
                 print(
                     f"Skipped deploying & overwriting {contract} ({short_contract_name}) for {chain}."
                 )
@@ -181,6 +193,22 @@ def deploy_to_specific_chains(chains: List[str], contracts: List[str]):
         deploy_to_chain(chain, contracts)
 
 
+def run_script_on_chain(chain: str, script: str):
+    if not has_etherscan_key(chain):
+        print(
+            f"Error: foundry.toml does not include an etherscan verification key for {chain}"
+        )
+        return
+
+    if chain not in config["rpc_endpoints"]:
+        print(f"Error: foundry.toml rpc_endpoints does not include chain {chain}")
+        return
+
+    command = f"forge script {script} --rpc-url {config['rpc_endpoints'][chain]} --broadcast --verify -vvvv"
+    print(f"Running script {script} on {chain}")
+    output = run_command(command)
+    print(output)
+
 def main():
     epilog_text = """
 Examples of using this script:
@@ -222,13 +250,30 @@ Notice: you have to update CONTRACTS_MAPPING and foundry.toml for this script to
         type=str,
         help="Specify specific chains to deploy to. If not provided, will ask for all chains.",
     )
+    parser.add_argument(
+        "-s",
+        "--script",
+        type=str,
+        help="Specify a script file to run on the chain.",
+    )
 
     args = parser.parse_args()
 
-    if args.chain:
-        deploy_to_specific_chains(args.chain, args.contracts)
+    if args.script:
+        if args.chain:
+            for chain in args.chain:
+                run_script_on_chain(chain, args.script)
+        else:
+            for chain in config["rpc_endpoints"].keys():
+                user_input = input(f"Run script on {chain}? (y/n) ")
+                if user_input == "y":
+                    run_script_on_chain(chain, args.script)
     else:
-        deploy_to_all_chains(args.contracts)
+        if args.chain:
+            deploy_to_specific_chains(args.chain, args.contracts)
+        else:
+            deploy_to_all_chains(args.contracts)
+
 
 
 if __name__ == "__main__":

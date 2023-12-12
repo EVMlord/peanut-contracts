@@ -15,14 +15,22 @@ contract PeanutV4Test is Test {
 
     // a dummy private/public keypair to test withdrawals
     address public constant PUBKEY20 = address(0xaBC5211D86a01c2dD50797ba7B5b32e3C1167F9f);
-    bytes32 public constant PRIVKEY = 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;
+
+    address public constant SAMPLE_ADDRESS = address(0x8fd379246834eac74B8419FfdA202CF8051F7A03);
+    bytes32 public constant SAMPLE_PRIVKEY = 0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa;
+
+    // For EIP-3009 testing
+    // keccak256("ReceiveWithAuthorization(address from,address to,uint256 value,uint256 validAfter,uint256 validBefore,bytes32 nonce)")
+    bytes32 public constant RECEIVE_WITH_AUTHORIZATION_TYPEHASH =
+        0xd099cc98ef71107a616c4f0f941f04c322d8e254fe26b3c6668db87aae413de8;
+    bytes32 public DOMAIN_SEPARATOR = 0xcaa2ce1a5703ccbe253a34eb3166df60a705c561b44b192061e28f2a985be2ca;
 
     function setUp() public {
         console.log("Setting up test");
-        peanutV4 = new PeanutV4();
         testToken = new ERC20Mock();
         testToken721 = new ERC721Mock();
         testToken1155 = new ERC1155Mock();
+        peanutV4 = new PeanutV4(address(0));
 
         // Mint tokens for test accounts
         testToken.mint(address(this), 1000);
@@ -47,6 +55,34 @@ contract PeanutV4Test is Test {
 
         assertEq(depositIndex, 0, "Deposit failed");
         assertEq(peanutV4.getDepositCount(), 1, "Deposit count mismatch");
+    }
+
+    function testMakeSelflessDepositERC20() public {
+        uint256 amount = 100;
+
+        // Make a deposit on behalf of SAMPLE_ADDRESS
+        uint256 depositIndex = peanutV4.makeSelflessDeposit(address(testToken), 1, amount, 0, PUBKEY20, SAMPLE_ADDRESS);
+
+        // Deposit was made on behalf of other address, so we can't withdraw :(((
+        vm.expectRevert("NOT THE SENDER");
+        peanutV4.withdrawDepositSender(depositIndex);
+
+        vm.prank(SAMPLE_ADDRESS); // Now we talkin'!
+        peanutV4.withdrawDepositSender(depositIndex);
+    }
+
+    // If we attempt to deposit ECO tokens as pure ERC20s (i.e. with _contractType = 1),
+    // makeDeposit function must revert.
+    function testECOMaliciousDeposit() public {
+        // pretent that testToken is ECO
+        PeanutV4 peanutV4ECO = new PeanutV4(address(testToken));
+
+        // approve tokens to be spent by the new peanut instance
+        testToken.approve(address(peanutV4), 1000);
+
+        // Test!!!!!!!!
+        vm.expectRevert("ECO DEPOSITS MUST USE _contractType 4");
+        peanutV4ECO.makeDeposit(address(testToken), 1, 100, 0, address(0));
     }
 
     function testMakeDepositERC721() public {

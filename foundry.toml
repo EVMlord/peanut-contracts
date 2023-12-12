@@ -3,8 +3,8 @@ src = "src"
 out = "out"
 libs = ["lib"]
 optimizer = true
-optimizer_runs = 2000
-solc = "0.8.20"
+optimizer_runs = 99999
+solc = "0.8.23"
 
 [rpc_endpoints]
 mainnet = "https://mainnet.infura.io/v3/${INFURA_API_KEY}"
@@ -86,8 +86,8 @@ mainnet = { key = "${ETHERSCAN_TOKEN}" }
 goerli = { key = "${ETHERSCAN_TOKEN}" }
 sepolia = { key = "${ETHERSCAN_TOKEN}" }
 holesky = { key = "${ETHERSCAN_TOKEN}", url = "https://holesky.etherscan.io/api" }
-polygon = { key = "${POLYGONSCAN_TOKEN}" }
-polygon-mumbai = { key = "${POLYGONSCAN_TOKEN}" }
+polygon = { key = "${POLYGONSCAN_TOKEN}", url = "https://api.polygonscan.com/api" }
+polygon-mumbai = { key = "${POLYGONSCAN_TOKEN}", url = "https://api-testnet.polygonscan.com/api" }
 optimism = { key = "${OPTISCAN_TOKEN}" }
 optimism-goerli = { key = "${OPTISCAN_TOKEN}" }
 arbitrum = { key = "${ARBISCAN_TOKEN}" }
